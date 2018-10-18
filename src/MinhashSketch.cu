@@ -346,9 +346,9 @@ signature genSig(const int k, const int m, const int t, char *dnaList, int lengt
     for (int j = 0; j < t; j++) {
         for (int i = 0; i < m; ++i)
             output_h[i] = UINT64_MAX;
-//        cout << "hash_index: " << j << "  hashes_b: " << hashes_b[j] << endl;
+            //cout << "hash_index: " << j << "  hashes_b: " << hashes_b[j] << endl;
         for (int p = 0; p < CHUNKS_NUM; p++) {
-//            cout << "\tchunk_index: " << p << endl;
+            //cout << "\tchunk_index: " << p << endl;
             for (int i = 0; i < numElem_dna; i++) {
                 if (i < record[p])
                     dna_h[i] = dnaList[i + start[p]];

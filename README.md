@@ -104,9 +104,9 @@ Then, we use primitives of [CUB](https://nvlabs.github.io/cub/index.html) to **r
 	__device__ void BlockGetHashValues (const int k, char *dna_d, int thread_offset, 
 							uint64 *thread_dataR, int hash_b);
 
-It is a device function inorder to get hash value list.
+It is a device function in order to get hash value list.
 
-We use a pointer to access sequence, which need noly to record the last base read, and directly assign four bases(A, C, T, G) to four kinds of 2-bit values in binary. 
+We use a pointer to access sequence, which need only to record the last base read, and directly assign four bases(A, C, T, G) to four kinds of 2-bit values in binary. 
 If the length of the subsequence exceeds 32 (i.e. one uint64 is not enough to indicate the length of subsequences), we need to use an array **cur\_seq**[k / 32 + 1] instead of one  uint64 to store subsequences. 
 
 For example, k is 100 here:
@@ -161,7 +161,7 @@ In this way, we can use at least (2 * m) thread to solve the two-list-merge prob
 If you want to compile the program, follow the instructions below:
 
 	Compile
-	$ nvcc -std=c++11 -I /export/project/hondius/opt/cub -rdc=true main.cu Utils.cu Hash.cu SpookyV2_d.cu -o minhash
+	$ nvcc -std=c++11 -I ~/Software/cub-1.8.0 -rdc=true main.cu Utils.cu Hash.cu SpookyV2_d.cu -o minhash
 
 	Run
 	$ ./minhash ../testing_files/sequence_abstract1.fasta ../testing_files/sequence_abstract2.fasta all -e --k=5 --m=10 --t=10
@@ -174,7 +174,7 @@ Or if you want to use **MinhashSketch.cu**, this an example about how to use it:
 
 	int k, m, t;
 	char *dnaList1, *dnaList2;
-	(Get k, m, t, dnaList1, dnaList2)
+	// (Get k, m, t, dnaList1, dnaList2)
 	uint64 *hashes_b = generateHashes_b(t, seed);
     vector <vector<uint64>> sig1 = genSig(k, m, t, dnaList1, length1, hashes_b);
     vector <vector<uint64>> sig2 = genSig(k, m, t, dnaList2, length2, hashes_b);
