@@ -62,7 +62,7 @@ The key functions are all in **MinhashSketch.cu**.
 ### genSig
 
 	signature genSig(const int k, const int m, const int t, 
-					char \*dnaList, int length, uint64 \*hashes\_b);
+					char *dnaList, int length, uint64 *hashes_b);
 
 This is a host window function. 
 The input parameters, **k**, **m** and **t**, have been explained before. 
