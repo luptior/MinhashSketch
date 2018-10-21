@@ -16,7 +16,7 @@ It's a program which implements a parallel algorithm to get  minhash sketches wi
 
 ### Steps
 
-In general, the program divides the long DNA sequence into sevelral CHUNKs and cope with them respectively. For each CHUNK, it will get hash velues, radix sort, mark, scan and merge in GPU. 
+In general, the program divides the long DNA sequence into several CHUNKs and cope with them respectively. For each CHUNK, it will get hash values, radix sort, mark, scan and merge in GPU. 
 
 <p>
 <img src="./git_picture/Steps1.png" width="360" align=center />

@@ -90,8 +90,7 @@ void help() {
     exit(0);
 }
 
-/*
-void getList(int k, uint64 *list[], string &sequence, vector <Hash> &hashes) {
+/* void getList(int k, uint64 *list[], string &sequence, vector <Hash> &hashes) {
     for (int j = 0; j < hashes.size(); j++) {
         uint64 begin = 0, end = sequence.size() - k + 1;
         uint64 length = end - begin + 1;
@@ -147,8 +146,7 @@ void getList(int k, uint64 *list[], string &sequence, vector <Hash> &hashes) {
             }
         }
     }
-}
-*/
+}*/
 
 // MinhashSketch.exe ../testing_files/sequence_clip1.fasta ../testing_files/sequence_clip2.fasta all -e --k=5 --m=10 --t=10
 int main(int argc, char *argv[]) {
@@ -228,10 +226,10 @@ int main(int argc, char *argv[]) {
     cout << "sequence2.size()" << sequence2.size() << endl;
     char dnaList1[sequence1.size()];
     char dnaList2[sequence2.size()];
-//    for (int i = 0; i < sequence1.size(); i++)
-//        dnaList1[i] = sequence1[i];
-//    for (int i = 0; i < sequence2.size(); i++)
-//        dnaList2[i] = sequence2[i];
+    //    for (int i = 0; i < sequence1.size(); i++)
+    //        dnaList1[i] = sequence1[i];
+    //    for (int i = 0; i < sequence2.size(); i++)
+    //        dnaList2[i] = sequence2[i];
     strcpy(dnaList1, sequence1.c_str());
     strcpy(dnaList2, sequence1.c_str());
 
@@ -240,11 +238,11 @@ int main(int argc, char *argv[]) {
     bool mode_found = false;
     double similarity, time;
     list <tuple<string, double, double>> results;
-//    vector <Hash> hashes = generateHashes(t, seed);
+    //    vector <Hash> hashes = generateHashes(t, seed);
     uint64 *hashes_b = generateHashes_b(t, seed);
-//    for (int i = 0; i < t; i++) {
-//        cout << "hashes_b[i]: " << hashes_b[i] << endl;
-//    }
+    //    for (int i = 0; i < t; i++) {
+    //        cout << "hashes_b[i]: " << hashes_b[i] << endl;
+    //    }
 
     // GET HASH VALUES LIST
     /*uint64 *list1[t];
@@ -270,7 +268,6 @@ int main(int argc, char *argv[]) {
         }
         mode_found = true;
         ini_time = clock();
-        // vector<Hash> hashes = generateHashes(t, seed);
         vector <vector<uint64>> sig1 = genSig(k, m, t, dnaList1, sequence1.size(), hashes_b);
         vector <vector<uint64>> sig2 = genSig(k, m, t, dnaList2, sequence2.size(), hashes_b);
         cout << "sig1:  size:" << sig1[0].size() << endl;
@@ -286,8 +283,8 @@ int main(int argc, char *argv[]) {
 
     // OUTPUT RESULTS
     if (e) {
-        cout << setw(12) << "cal_name" << setw(14) << "seed" << setw(5) << "k" << setw(5) << "m" << setw(7) << "t";
-        cout << setw(13) << fixed << "time" << setw(13) << fixed << "similarity" << endl;
+        cout << setw(12) << "cal_name" << setw(14) << "seed" << setw(9) << "k" << setw(5) << "m" << setw(7) << "t";
+        cout << setw(9) << fixed << "time" << setw(13) << fixed << "similarity" << endl;
     } else {
         cout << "===========================" << endl;
         cout << "k:" << k << setw(7) << fixed << "m:" << m << setw(7) << fixed << "t:" << t << endl;
@@ -296,8 +293,8 @@ int main(int argc, char *argv[]) {
     cout.precision(8);
     for (auto &result : results) {
         if (e) {
-            cout << setw(12) << get<0>(result) << setw(14) << seed << setw(5) << k << setw(5) << m << setw(7) << t;
-            cout << setw(13) << fixed << get<2>(result) << setw(13) << fixed << get<1>(result) << endl;
+            cout << setw(12) << get<0>(result) << setw(14) << seed << setw(5) << k <<9setw(5) << m << setw(7) << t;
+            cout << setw(9) << fixed << get<2>(result) << setw(13) << fixed << get<1>(result) << endl;
         } else {
             cout << uline_on << get<0>(result) << uline_off << endl;
             cout << "time: " << setw(21) << fixed << get<2>(result) << endl;

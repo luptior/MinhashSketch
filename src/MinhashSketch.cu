@@ -301,7 +301,7 @@ void rMerge(const int m, uint64 *sketch_h, uint64 *output_h) {
 
 signature genSig(const int k, const int m, const int t, char *dnaList, int length, uint64 *hashes_b) {
 
-    const int BLOCKS_NUM = 16;
+    const int BLOCKS_NUM = 16; 
     const int BLOCK_THREADS = 32 * 16;
     const int ITEMS_PER_THREAD = 4;
 
