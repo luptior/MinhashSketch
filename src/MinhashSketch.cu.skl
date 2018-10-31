@@ -1,0 +1,78 @@
+#include "MinhashSketch_dev.cuh"
+#include <cstdint>
+#include "SpookyV2_d.h"
+
+// turn base to int
+__device__
+int base2int(char base) {
+    switch (base) {
+        case 'A':
+            return 0;
+        case 'C':
+            return 1;
+        case 'G':
+            return 2;
+        case 'T':
+            return 3;
+        default:
+            return -1;
+    }
+}
+
+// get hash for each kmer
+__device__
+uint64_t GetHash(const char* inputItem, int thread_offset, int k, int hash_b){
+    int dna_index = thread_offset;
+    // turn acsII kmer to int
+    uint64_t kmer_int = 0;
+    uint64_t kmer_hash = 0;
+    for (; dna_index < thread_offset + k - 1; dna_index++) {
+        if (base2int(inputItem[dna_index]) != -1) {
+            kmer_int = (kmer_int << 2) % ((uint64_t) 1 << (2 * k)) + base2int(inputItem[dna_index]);
+        }
+    }
+    return SpookyV2_d::Hash64(kmer_int, k*2/8 +1, hash_b);
+}
+
+
+__device__
+void MinhashSketch_dev::
+BlockGetSketch::run(const char* & inputItem, InstTagT nodeIdx)
+{
+    // Param m : {unsigned int};
+    // Param k : {unsigned int};
+    // NodeParam BlockGetSketch::thread_offset : {unsigned int};
+    // NodeParam BlockGetSketch::hash_b : {unsigned int};
+    uint64_t hash = GetHash(inputItem, thread_offset, hash_b);
+
+    if (v % 2 == 0)
+    push(hash, nodeIdx); // eqv to "push(v, nodeIdx, Out::accept);"
+   
+}
+
+__device__
+void MinhashSketch_dev::
+MergeSketch::init()
+{
+
+}
+
+__device__
+void MinhashSketch_dev::
+MergeSketch::run(const uint64_t& inputItem, InstTagT nodeIdx)
+{
+   
+}
+
+
+// The cleanup() function of this module, which is called when the input is 
+// all consumed,  will then copy tmpSketch to a device array allocated by 
+// the host, for  which you pass in a pointer as a parameter.
+__device__
+void MinhashSketch_dev::
+MergeSketch::cleanup()
+{
+// NodeParam MergeSketch::resultSketchStorage : {uint64_t *};
+
+}
+

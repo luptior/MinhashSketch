@@ -1,3 +1,6 @@
+// this is host-side app
+// modified from MinhashSketch(https://github.com/daren996/MinhashSketch)
+
 #include <algorithm>
 #include <fstream>
 #include <iostream>
@@ -6,6 +9,7 @@
 #include <random>
 #include <vector>
 #include <string>
+#include <csdint>
 
 #include "MinhashSketch.cu"
 #include "Hash.h"
@@ -90,6 +94,47 @@ void help() {
     exit(0);
 }
 
+int getsketch(char dnaList[])
+{
+
+    // host_side buffers
+    char *input = dnaList;
+    uint64_t *output = new uint64_t [100];
+
+    Mercator::Buffer<int> ib(100);
+    Mercator::Buffer<int> ob(100);
+
+    MinhashSketch sketch;
+
+    numBlocks = sketch.getNBlocks();
+
+
+
+
+    // pass in the program parameters
+    sketch.getParams()->m=128;
+    sketch.getParams()->k=25;
+    sktech.BlockGetSketch.getParam()->thread_offset = """something_ add here""";
+    sktech.BlockGetSketch.getParam()->hash_b = """something_ add here""";
+
+    // set input and output place
+    sketch.src.setSource(ib);
+    sketch.snk.setSink(ob);
+
+    // generate some input data
+    for (int j = 1 ; j <100; j++){
+        input[j] = j;
+    }
+
+    ib.set(input, 100);
+    sketch.run();
+    ob.get(output, ob.size());
+
+    //Print Results
+
+
+}
+
 // MinhashSketch.exe ../testing_files/sequence_clip1.fasta ../testing_files/sequence_clip2.fasta all -e --k=5 --m=10 --t=10
 int main(int argc, char *argv[]) {
 
@@ -168,10 +213,6 @@ int main(int argc, char *argv[]) {
     cout << "sequence2.size()" << sequence2.size() << endl;
     char dnaList1[sequence1.size()];
     char dnaList2[sequence2.size()];
-    //    for (int i = 0; i < sequence1.size(); i++)
-    //        dnaList1[i] = sequence1[i];
-    //    for (int i = 0; i < sequence2.size(); i++)
-    //        dnaList2[i] = sequence2[i];
     strcpy(dnaList1, sequence1.c_str());
     strcpy(dnaList2, sequence1.c_str());
 
@@ -180,27 +221,8 @@ int main(int argc, char *argv[]) {
     bool mode_found = false;
     double similarity, time;
     list <tuple<string, double, double>> results;
-    //    vector <Hash> hashes = generateHashes(t, seed);
     uint64 *hashes_b = generateHashes_b(t, seed);
-    //    for (int i = 0; i < t; i++) {
-    //        cout << "hashes_b[i]: " << hashes_b[i] << endl;
-    //    }
 
-    // GET HASH VALUES LIST
-    /*uint64 *list1[t];
-    uint64 *list2[t];
-    for (int i = 0; i < t; i++) {
-        list1[i] = (uint64 *) malloc(sizeof(uint64) * (sequence1.size() - k + 1));
-        list2[i] = (uint64 *) malloc(sizeof(uint64) * (sequence2.size() - k + 1));
-        for (int j = 0; j < sequence1.size() - k + 1; j++) {
-            list1[i][j] = UINT64_MAX;
-        }
-        for (int j = 0; j < sequence2.size() - k + 1; j++) {
-            list2[i][j] = UINT64_MAX;
-        }
-    }
-    getList(k, list1, sequence1, hashes);
-    getList(k, list2, sequence2, hashes);*/
 
     if (cal_name == "all" || cal_name == "minhash_parallel") {
         if (t < 1) {
@@ -210,6 +232,10 @@ int main(int argc, char *argv[]) {
         }
         mode_found = true;
         ini_time = clock();
+        //
+        //
+        //
+        // Changes should be made here to use Mercator version of codes
         vector <vector<uint64>> sig1 = genSig(k, m, t, dnaList1, sequence1.size(), hashes_b);
         vector <vector<uint64>> sig2 = genSig(k, m, t, dnaList2, sequence2.size(), hashes_b);
         cout << "sig1:  size:" << sig1[0].size() << endl;
