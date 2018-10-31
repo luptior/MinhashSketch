@@ -1,0 +1,50 @@
+//
+// MinhashSketch.MTR
+// 
+// MERCATOR
+// Copyright (C) 2018 Washington University in St. Louis; all rights reserved.
+//
+
+// reference from original MinhashSketch(https://github.com/daren996/MinhashSketch)
+reference "cstdint";
+
+Application MinhashSketch;
+
+// MODULES
+
+// Module BlockGetHash
+// input is char* to the beginning bases for each kmer. The module turn kmers of 
+// k(k is passed in as app parameter)at most 32 chars to uint64 and the hash, 
+// Radix sort, mark discontinuity/scan
+Module BlockGetSketch : {char* } -> {uint64_t};
+// merge the input with stored sketch in the NodeState with length m, there is a second 
+// sorting and then the smallest m unique hash values will be stored in the NodeState 
+// again MergeSketck Module won't emit any outut.
+Module MergeSketch : {uint64_t} -> void;
+
+// Nodes
+Node src : Source<char*>;
+Node blockHash : BlockGetSketch;
+Node mergeSketch : MergeSketch;
+
+// EDGES: CONNECTIONS BETWEEN NODES
+
+Edge src -> blockHash;
+Edge blockHash -> mergeSketch;
+
+
+// PARAMETERS 
+
+// Declare app-modules parameters named m, k, per-module parameters thread_offset 
+// and hash_b which have type unsigned int
+Param m : {unsigned int};
+Param k : {unsigned int};
+NodeParam BlockGetSketch::thread_offset : {unsigned int};
+NodeParam BlockGetSketch::hash_b : {unsigned int};
+// node state parameter to store sketch, with a uint64 pointer to its beginning
+NodeState MergeSketch::tmpSketch : {uint64_t *};
+// a pointer to device array allocated by the host where tmpSketch is copied to 
+NodeParam MergeSketch::resultSketchStorage : {uint64_t *};
+// If m is smaller than your block width, can restrict the module that 
+// does the merging of sketches to accept only m inputs 
+Ilimit MergeSketch 128;

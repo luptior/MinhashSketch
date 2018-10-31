@@ -1,19 +1,4 @@
-#include <iostream>
-#include <stdlib.h>
-#include <stdio.h>
-#include <vector>
-#include <cstdint>
-#include <cmath>
-#include <queue>
-#include <thread>
-#include <unordered_set>
-#include <cuda_runtime.h>
-#include "SpookyV2_d.h"
-#include <cub/cub.cuh>
-
 using namespace std;
-
-typedef vector<vector<uint64>> signature;
 
 //#define BLOCKS_NUM 5
 //#define BLOCK_THREADS 128
@@ -37,7 +22,8 @@ int base2int(char base) {
     }
 }
 
-__device__ uint64 getHashValue (uint64 *x, uint64 b, int k) {
+__device__ 
+uint64 getHashValue (uint64 *x, uint64 b, int k) {
     return SpookyHash_d::Hash64(x, (k / 32 + 1) * 8, b);
 }
 
@@ -45,7 +31,8 @@ __device__ uint64 getHashValue (uint64 *x, uint64 b, int k) {
  * Get hash value list on blocks
 */
 template<int BLOCK_THREADS, int ITEMS_PER_THREAD>
-__device__ void BlockGetHashValues (const int k, char *dna_d, int thread_offset, uint64 *thread_dataR, int hash_b) {
+__device__ 
+void BlockGetHashValues (const int k, char *dna_d, int thread_offset, uint64 *thread_dataR, int hash_b) {
     int list_index = 0;
     int dna_index = thread_offset;
     bool isEnd = 0;
@@ -106,7 +93,8 @@ __device__ void BlockGetHashValues (const int k, char *dna_d, int thread_offset,
  * Remove duplicate values from sorted hash value list.
 */
 template<int BLOCK_THREADS, int ITEMS_PER_THREAD>
-__device__ void BlockRemoveDupe (const int m, int *thread_dataS, int *thread_dataD,
+__device__ 
+void BlockRemoveDupe (const int m, int *thread_dataS, int *thread_dataD,
                                  uint64 *thread_dataR, uint64 *sketch) {
     int offset = thread_dataS[0];
     for (int i = 0; i < ITEMS_PER_THREAD; ++i)
@@ -118,7 +106,8 @@ __device__ void BlockRemoveDupe (const int m, int *thread_dataS, int *thread_dat
  * Get sketch of each block back to input_d
 */
 template<int BLOCK_THREADS, int ITEMS_PER_THREAD>
-__device__ void BlockGetBack (const int m, int threadID, uint64 *thread_dataR, uint64 *sketch) {
+__device__ 
+void BlockGetBack (const int m, int threadID, uint64 *thread_dataR, uint64 *sketch) {
     for (int i = 0; i < ITEMS_PER_THREAD; ++i)
         if (threadID * ITEMS_PER_THREAD + i < m)
             thread_dataR[i] = sketch[threadID * ITEMS_PER_THREAD + i];
@@ -141,7 +130,8 @@ __device__ void BlockGetBack (const int m, int threadID, uint64 *thread_dataR, u
  * Finally, get sketches of each block.
  */
 template<int BLOCK_THREADS, int ITEMS_PER_THREAD>
-__global__ void getBlockSketch (const int k, const int m, char *dna_d, uint64 *input_d,
+__global__ 
+void getBlockSketch (const int k, const int m, char *dna_d, uint64 *input_d,
                                 int numElem_dna, int numElem_list, uint64 hash_b) {
     typedef cub::BlockStore<uint64, BLOCK_THREADS, ITEMS_PER_THREAD, cub::BLOCK_STORE_WARP_TRANSPOSE> BlockStoreR;
     typedef cub::BlockRadixSort <uint64, BLOCK_THREADS, ITEMS_PER_THREAD> BlockRadixSort;
@@ -184,7 +174,8 @@ __global__ void getBlockSketch (const int k, const int m, char *dna_d, uint64 *i
  * Get ranks and dupe-marks of list A
 * */
 template<int BLOCK_THREADS, int ITEMS_PER_THREAD>
-__device__ void BlockGetRank(int m, uint64 *thread_data64, int *thread_dataR, int *thread_dataD, uint64 *shared_B) {
+__device__ 
+void BlockGetRank(int m, uint64 *thread_data64, int *thread_dataR, int *thread_dataD, uint64 *shared_B) {
     for (int i = 0; i < ITEMS_PER_THREAD; ++i) {
         uint64 key = thread_data64[i];
         int left = 0;
@@ -215,7 +206,8 @@ __device__ void BlockGetRank(int m, uint64 *thread_data64, int *thread_dataR, in
  * Then, write back to input_d.
  * */
 template<int BLOCKS_NUM, int BLOCK_THREADS, int ITEMS_PER_THREAD>
-__global__ void getAllSketch (const int m, uint64 *input_d, int numElem_list) {
+__global__ 
+void getAllSketch (const int m, uint64 *input_d, int numElem_list) {
 
     typedef cub::BlockLoad<uint64, BLOCK_THREADS, ITEMS_PER_THREAD, cub::BLOCK_LOAD_WARP_TRANSPOSE> BlockLoad64;
     typedef cub::BlockScan<int, BLOCK_THREADS> BlockScan;
