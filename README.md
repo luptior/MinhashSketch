@@ -1,12 +1,16 @@
 # MinhashSketch
 
-It is a project when I was internship at the University of Washington in St. Louis under the guidance of [Prof. Buhler](https://www.cse.wustl.edu/~jbuhler/).
+It is a PhD first year rotation project done with [Prof. Jeremy Buhler](https://www.cse.wustl.edu/~jbuhler/).
 
-[1. What is MinhashSketch](#what-is-minhashsketch)<p>
-[2. Function Documentation](#function-documentation)<p>
-[3. Examples](#examples)<p>
-[4. Process Description](#process-description)<p>
-[5. Reference](#reference)
+[1. What is MinhashSketch](#what-is-mercator)<p>
+[2. What is MinhashSketch](#what-is-minhashsketch)<p>
+[3. Function Documentation](#function-documentation)<p>
+[4. Examples](#examples)<p>
+[5. Process Description](#process-description)<p>
+[6. Reference](#reference)
+
+## What is Mercator
+[Mercator](https://github.com/jdbuhler/mercator) is  a framework to implement irregular streaming applications on NVIDIA GPUs. 
 
 ## What is MinhashSketch
 
