@@ -168,10 +168,7 @@ int main(int argc, char *argv[]) {
     cout << "sequence2.size()" << sequence2.size() << endl;
     char dnaList1[sequence1.size()];
     char dnaList2[sequence2.size()];
-    //    for (int i = 0; i < sequence1.size(); i++)
-    //        dnaList1[i] = sequence1[i];
-    //    for (int i = 0; i < sequence2.size(); i++)
-    //        dnaList2[i] = sequence2[i];
+
     strcpy(dnaList1, sequence1.c_str());
     strcpy(dnaList2, sequence1.c_str());
 
@@ -180,27 +177,8 @@ int main(int argc, char *argv[]) {
     bool mode_found = false;
     double similarity, time;
     list <tuple<string, double, double>> results;
-    //    vector <Hash> hashes = generateHashes(t, seed);
-    uint64 *hashes_b = generateHashes_b(t, seed);
-    //    for (int i = 0; i < t; i++) {
-    //        cout << "hashes_b[i]: " << hashes_b[i] << endl;
-    //    }
 
-    // GET HASH VALUES LIST
-    /*uint64 *list1[t];
-    uint64 *list2[t];
-    for (int i = 0; i < t; i++) {
-        list1[i] = (uint64 *) malloc(sizeof(uint64) * (sequence1.size() - k + 1));
-        list2[i] = (uint64 *) malloc(sizeof(uint64) * (sequence2.size() - k + 1));
-        for (int j = 0; j < sequence1.size() - k + 1; j++) {
-            list1[i][j] = UINT64_MAX;
-        }
-        for (int j = 0; j < sequence2.size() - k + 1; j++) {
-            list2[i][j] = UINT64_MAX;
-        }
-    }
-    getList(k, list1, sequence1, hashes);
-    getList(k, list2, sequence2, hashes);*/
+    uint64 *hashes_b = generateHashes_b(t, seed);
 
     if (cal_name == "all" || cal_name == "minhash_parallel") {
         if (t < 1) {

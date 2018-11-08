@@ -57,7 +57,7 @@ uint64* generateHashes_b(int t, int seed) {
         uniform_int_distribution<uint64> distB(0, p - 1);
         uint64 b = distB(rng_h);
         hashes_b[i] = b;
-//        cout << "hashes_b[i]: " << hashes_b[i] << endl;
+    // cout << "hashes_b[i]: " << hashes_b[i] << endl;
     }
     return hashes_b;
 }

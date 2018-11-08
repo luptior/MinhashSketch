@@ -6,10 +6,10 @@
 #include <iostream>
 #include <iomanip>
 #include <list>
+#include <cstdint>
 #include <random>
 #include <vector>
 #include <string>
-#include <csdint>
 
 #include "MinhashSketch.cu"
 #include "Hash.h"
@@ -94,44 +94,55 @@ void help() {
     exit(0);
 }
 
-int getsketch(char dnaList[])
-{
-
-    // host_side buffers
-    char *input = dnaList;
-    uint64_t *output = new uint64_t [100];
-
-    Mercator::Buffer<int> ib(100);
-    Mercator::Buffer<int> ob(100);
+// Main function to run the program in mercator style
+int run_mercator(const int k, const int m, const int t, char *dnaList, int length, uint64 *hashes_b, uint64_t* result)
+{   
 
     MinhashSketch sketch;
 
-    numBlocks = sketch.getNBlocks();
+    // number of blocks
+    const int BLOCKS_NUM = sketch.getNBlocks();
+    const int BLOCK_THREADS = 32 * 16;
+    const int ITEMS_PER_THREAD = 4;
+    cout << "Number of Blocks" << BLOCKS_NUM << "\n";
+    int CHUNKS_NUM;
+    int CHUNK_SIZE=BLOCKS_NUM * BLOCK_THREADS * ITEMS_PER_THREAD ;
+
+    // Calculate how many chuncks does one have
+    if (length % (BLOCKS_NUM * BLOCK_THREADS * ITEMS_PER_THREAD) == 0)
+        CHUNKS_NUM = (length - k + 1) / CHUNK_SIZE;
+    else
+        CHUNKS_NUM = (length - k + 1) / CHUNK_SIZE + 1;
+
+    for (int i = 0; i < (CHUNKS_NUM - 1); ++i) {
+        // host_side buffers
+        char *input = new char [CHUNK_SIZE];
+        input = &dnaList + i*CHUNKS_SIZE ;
+        uint64_t *output = new uint64_t [m];
+
+        // begin MERCATOR usage
+        Mercator::Buffer<char> ib(CHUNK_SIZE);
+        Mercator::Buffer<uint64_t> ob(m);
+        
+        // move data into the input buffer
+        ib.set(input, length);
+        
+            // pass in the program parameters
+        sketch.getParams()->m=m;
+        sketch.getParams()->k=k;
+        sktech.BlockGetSketch.getParam()->thread_offset = """something_ add here""";
+        sktech.BlockGetSketch.getParam()->hash_b = """something_ add here""";
 
 
-
-
-    // pass in the program parameters
-    sketch.getParams()->m=128;
-    sketch.getParams()->k=25;
-    sktech.BlockGetSketch.getParam()->thread_offset = """something_ add here""";
-    sktech.BlockGetSketch.getParam()->hash_b = """something_ add here""";
-
-    // set input and output place
-    sketch.src.setSource(ib);
-    sketch.snk.setSink(ob);
-
-    // generate some input data
-    for (int j = 1 ; j <100; j++){
-        input[j] = j;
+        // set input and output place
+        sketch.src.setSource(ib);
+        sketch.snk.setSink(ob);
+        
+        sketch.run();
+        ob.get(output, ob.size());
+    
+        //Print Results
     }
-
-    ib.set(input, 100);
-    sketch.run();
-    ob.get(output, ob.size());
-
-    //Print Results
-
 
 }
 
@@ -156,12 +167,12 @@ int main(int argc, char *argv[]) {
     string cal_name = string(argv[3]);
     ifstream file1(name_one);
     if (file1.fail()) {
-        std::cerr << "Unable to open file " << name_one << std::endl;
+        std::cerr << "Unable to open file 1" << name_one << std::endl;
         exit(1);
     }
     ifstream file2(name_two);
     if (file2.fail()) {
-        std::cerr << "Unable to open file " << name_two << std::endl;
+        std::cerr << "Unable to open file 2" << name_two << std::endl;
         exit(1);
     }
 
@@ -200,7 +211,7 @@ int main(int argc, char *argv[]) {
 
     // GET TWO SEQUENCES
     string file_info1, file_info2, sequence1, sequence2, s1, s2;
-    utils::file_to_string(file1, file_info1, sequence1); // The first line is file information
+    utils::file_to_string(file1, file_info1, sequence1); 
     utils::file_to_string(file2, file_info2, sequence2);
     uint64 sequence_size1 = sequence1.size(), sequence_size2 = sequence2.size();
     if (sequence1.size() < k || sequence2.size() < k) {
@@ -209,8 +220,9 @@ int main(int argc, char *argv[]) {
     }
     file1.close();
     file2.close();
-    cout << "sequence1.size()" << sequence1.size() << endl;
-    cout << "sequence2.size()" << sequence2.size() << endl;
+    cout << file_info1 << "\n" <<"sequence1 size: " << sequence1.size() << endl;
+    cout << file_info2 << "\n" <<"sequence2 size: " << sequence2.size() << endl;
+    // dnaLists are char array store the sequence in chars
     char dnaList1[sequence1.size()];
     char dnaList2[sequence2.size()];
     strcpy(dnaList1, sequence1.c_str());
@@ -221,26 +233,39 @@ int main(int argc, char *argv[]) {
     bool mode_found = false;
     double similarity, time;
     list <tuple<string, double, double>> results;
+
+    //a list of hash randoms are calculated for t hash functions
     uint64 *hashes_b = generateHashes_b(t, seed);
 
 
     if (cal_name == "all" || cal_name == "minhash_parallel") {
+
         if (t < 1) {
             cerr << endl;
-            cerr << "You must provide a parameter --t=POSITIVE_INTEGER parameter for minhash modes!" << endl << endl;
+            cerr << "You must provide a parameter --t=POSITIVE_INTEGER parameter for minhash modes!" 
+                    << endl << endl;
             exit(1);
         }
+
         mode_found = true;
         ini_time = clock();
-        //
-        //
+
+        sig2  = new uint64_t[m];
+        sig1  = new uint64_t[m];
+
         //
         // Changes should be made here to use Mercator version of codes
-        vector <vector<uint64>> sig1 = genSig(k, m, t, dnaList1, sequence1.size(), hashes_b);
-        vector <vector<uint64>> sig2 = genSig(k, m, t, dnaList2, sequence2.size(), hashes_b);
-        cout << "sig1:  size:" << sig1[0].size() << endl;
+        run_mercator(k, m, t, dnaList1, sequence1.size(), hashes_b, sig1);
+        run_mercator(k, m, t, dnaList2, sequence2.size(), hashes_b, sig2);
+        
+        // Change the original output type to be fixed size array
+        // vector <vector<uint64>> sig1 = genSig(k, m, t, dnaList1, sequence1.size(), hashes_b);
+        // vector <vector<uint64>> sig2 = genSig(k, m, t, dnaList2, sequence2.size(), hashes_b);
+
+
+        cout << "sig1 size:" << sig1[0].size() << endl;
         output_signature(sig1);
-        cout << "\nsig2:  size:" << sig2[0].size() << endl;
+        cout << "\nsig2 size:" << sig2[0].size() << endl;
         output_signature(sig2);
         cout << endl;
         similarity = computeSim(sig1, sig2);

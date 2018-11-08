@@ -1,10 +1,5 @@
 //
 // MinhashSketch.MTR
-// 
-// MERCATOR
-// Copyright (C) 2018 Washington University in St. Louis; all rights reserved.
-//
-
 // reference from original MinhashSketch(https://github.com/daren996/MinhashSketch)
 reference "cstdint";
 

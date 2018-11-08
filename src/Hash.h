@@ -28,7 +28,7 @@ public:
     long long int generateNextPrime(long long int n);
     Hash() = default;
     Hash(uint64 u, int seed) {
-//        p = generateNextPrime(static_cast<long long int>(u));
+        // p = generateNextPrime(static_cast<long long int>(u));
         p = (uint64)13835058055282163729;
         mt19937 rng(seed);
         uniform_int_distribution<uint64> distA(1, p - 1);
