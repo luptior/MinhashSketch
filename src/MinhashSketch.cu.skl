@@ -1,6 +1,7 @@
 #include "MinhashSketch_dev.cuh"
 #include <cstdint>
 #include "SpookyV2_d.h"
+#include <cub/cub.cuh>
 
 // turn base to int
 __device__
@@ -19,33 +20,45 @@ int base2int(char base) {
     }
 }
 
-// get hash for each kmer
+// get hash for each kmerm input is the pointer to the start char of the 
+// kmer and k is the length
+// involves 2 steps: 1. char to int string (2bit code for each base)
+// 2. Hash each int
 __device__
-uint64_t GetHash(const char* inputItem, int thread_offset, int k, int hash_b){
-    int dna_index = thread_offset;
+uint64_t GetHash(char* inputItem, int k, int hash_b){
     // turn acsII kmer to int
     uint64_t kmer_int = 0;
     uint64_t kmer_hash = 0;
-    for (; dna_index < thread_offset + k - 1; dna_index++) {
-        if (base2int(inputItem[dna_index]) != -1) {
-            kmer_int = (kmer_int << 2) % ((uint64_t) 1 << (2 * k)) + base2int(inputItem[dna_index]);
-        }
+    char* base_p;
+    for (int i = 0 ; i < k ; i++) {
+        base_p = inputItem + i;
+        kmer_int = (kmer_int << 2) % ((uint64_t) 1 << (2 * k)) + base2int(* base_p);
     }
-    return SpookyV2_d::Hash64(kmer_int, k*2/8 +1, hash_b);
+    kmer_hash =  SpookyV2_d::Hash64(kmer_int, k*2/8 +1, hash_b);
+    return kmer_hash;
 }
 
 
 __device__
 void MinhashSketch_dev::
 BlockGetSketch::run(const char* & inputItem, InstTagT nodeIdx)
-{
+{   
+    
     // Param m : {unsigned int};
     // Param k : {unsigned int};
-    // NodeParam BlockGetSketch::thread_offset : {unsigned int};
     // NodeParam BlockGetSketch::hash_b : {unsigned int};
-    uint64_t hash = GetHash(inputItem, thread_offset, hash_b);
+    int m = getParam()->m;
+    int BLOCK_THREADS = getParam()->BLOCK_THREADS;
+    int ITEMS_PER_THREAD = getParam()->ITEMS_PER_THREAD;
+    typedef cub::BlockStore<uint64_t, BLOCK_THREADS, ITEMS_PER_THREAD, cub::BLOCK_STORE_WARP_TRANSPOSE> BlockStoreR;
+    typedef cub::BlockRadixSort <uint64_t, BLOCK_THREADS, ITEMS_PER_THREAD> BlockRadixSort;
+    typedef cub::BlockDiscontinuity<uint64_t, BLOCK_THREADS> BlockDiscontinuity;
+    typedef cub::BlockScan<int, BLOCK_THREADS> BlockScan;
 
-    if (v % 2 == 0)
+
+
+
+
     push(hash, nodeIdx); // eqv to "push(v, nodeIdx, Out::accept);"
    
 }

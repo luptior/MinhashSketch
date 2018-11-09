@@ -17,16 +17,6 @@
 
 using namespace std;
 
-void output_signature(vector <vector<uint64>> sig1) {
-    for (int h = 0; h < sig1.size(); ++h) {
-        cout << "sig[" << h << "].size(): " << sig1[h].size() << "\t";
-        for (int i = 0; i < sig1[h].size(); ++i) {
-            cout << hex << sig1[h][i] << dec << " ";
-        }
-        cout << endl;
-    }
-}
-
 void usage() {
     cout << "===========================" << endl;
     cerr << "Usage: " << endl << endl;
@@ -95,55 +85,79 @@ void help() {
 }
 
 // Main function to run the program in mercator style
-int run_mercator(const int k, const int m, const int t, char *dnaList, int length, uint64 *hashes_b, uint64_t* result)
+int run_mercator(const int k, const int m, const int t, char *dnaList, int length, uint64 hash_b, uint64_t result[])
 {   
 
     MinhashSketch sketch;
 
-    // number of blocks
+    // 3 GPU parameters, used to decide the size of chunck 
     const int BLOCKS_NUM = sketch.getNBlocks();
     const int BLOCK_THREADS = 32 * 16;
-    const int ITEMS_PER_THREAD = 4;
-    cout << "Number of Blocks" << BLOCKS_NUM << "\n";
+    const int ITEMS_PER_THREAD = 1;
+    cout << "GPU info:\n Number of Blocks: " << BLOCKS_NUM << "\n";
+    cout << "BLOCK_THREADS: " << BLOCK_THREADS << "\n";
+    cout << "ITEMS_PER_THREAD: " << ITEMS_PER_THREAD << "\n";
+
+    // size of each chunk and number of chunks needed for this sequence 
     int CHUNKS_NUM;
-    int CHUNK_SIZE=BLOCKS_NUM * BLOCK_THREADS * ITEMS_PER_THREAD ;
+    int CHUNK_SIZE=BLOCKS_NUM * BLOCK_THREADS * ITEMS_PER_THREAD;
 
     // Calculate how many chuncks does one have
-    if (length % (BLOCKS_NUM * BLOCK_THREADS * ITEMS_PER_THREAD) == 0)
+    if (length % (CHUNK_SIZE) == 0)
         CHUNKS_NUM = (length - k + 1) / CHUNK_SIZE;
     else
         CHUNKS_NUM = (length - k + 1) / CHUNK_SIZE + 1;
+k
+    // each chuck is loaded into input every time
+    char *input = new char * [CHUNK_SIZE];
+    uint64_t *output = new uint64_t [m];
+    uint64_t *output_dev;
+    // assign sapce on device to hold result
+    res = cudaMalloc( (void**) &output_dev, sizeof(uint64_t)*m );
+    CHECK(res);
 
-    for (int i = 0; i < (CHUNKS_NUM - 1); ++i) {
+    // calculate the first CHUNK_NUM -1 chuncks, the last obne might have a different size
+    for (int i = 0; i < (CHUNKS_NUM - 1); i ++) {
         // host_side buffers
-        char *input = new char [CHUNK_SIZE];
-        input = &dnaList + i*CHUNKS_SIZE ;
-        uint64_t *output = new uint64_t [m];
-
+        
+        // load the target sequence chunk into input var
+        for(int j = 0; j < CHUNK_SIZE; j ++){
+            input[j] = &dnaList[i*CHUNK_SIZE + j];
+        }
+        
         // begin MERCATOR usage
-        Mercator::Buffer<char> ib(CHUNK_SIZE);
+        Mercator::Buffer<char*> ib(CHUNK_SIZE);
         Mercator::Buffer<uint64_t> ob(m);
         
         // move data into the input buffer
-        ib.set(input, length);
+        ib.set(input, CHUNK_SIZE);
         
-            // pass in the program parameters
+        // pass in the program parameters
         sketch.getParams()->m=m;
         sketch.getParams()->k=k;
-        sktech.BlockGetSketch.getParam()->thread_offset = """something_ add here""";
-        sktech.BlockGetSketch.getParam()->hash_b = """something_ add here""";
-
+        sktech.BlockGetSketch.getParam()->hash_b = hash_b;
+        sktech.MergeSketch.getParam()->resultSketchStorage = output_dev;
 
         // set input and output place
         sketch.src.setSource(ib);
-        sketch.snk.setSink(ob);
+        sketch.mergeSketch.setSink(ob);
         
         sketch.run();
+
         ob.get(output, ob.size());
     
         //Print Results
     }
+    // deal with the last chunk
+    int LAST_CHUNK_SIZE = length%CHUNK_SIZE + 1;
+    int LAST_CHUNK_START = length-LAST_CHUNK_SIZE+1 ;
+    char *input = new char [LAST_CHUNK_SIZE];
+    for(int j = LAST_CHUNK_START ; j < length ; j ++){
+        input[j- LAST_CHUNK_START] = dnaList[j];
+    }
 
+
+    return 0;
 }
 
 // MinhashSketch.exe ../testing_files/sequence_clip1.fasta ../testing_files/sequence_clip2.fasta all -e --k=5 --m=10 --t=10
@@ -232,42 +246,37 @@ int main(int argc, char *argv[]) {
     clock_t ini_time;
     bool mode_found = false;
     double similarity, time;
-    list <tuple<string, double, double>> results;
 
     //a list of hash randoms are calculated for t hash functions
-    uint64 *hashes_b = generateHashes_b(t, seed);
-
+    // uint64 *hashes_b = generateHashes_b(t, seed);
+    // change to use single hash_b
+    uint64 hash_b = generateHashes_b(1, seed);
 
     if (cal_name == "all" || cal_name == "minhash_parallel") {
 
-        if (t < 1) {
-            cerr << endl;
-            cerr << "You must provide a parameter --t=POSITIVE_INTEGER parameter for minhash modes!" 
-                    << endl << endl;
-            exit(1);
-        }
+        // if (t < 1) {
+        //     cerr << endl;
+        //     cerr << "You must provide a parameter --t=POSITIVE_INTEGER parameter for minhash modes!" 
+        //             << endl << endl;
+        //     exit(1);
+        // }
 
         mode_found = true;
         ini_time = clock();
 
-        sig2  = new uint64_t[m];
-        sig1  = new uint64_t[m];
+        uint64_t *sig2  = new uint64_t[m];
+        uint64_t *sig1  = new uint64_t[m];
 
         //
         // Changes should be made here to use Mercator version of codes
-        run_mercator(k, m, t, dnaList1, sequence1.size(), hashes_b, sig1);
-        run_mercator(k, m, t, dnaList2, sequence2.size(), hashes_b, sig2);
+        run_mercator(k, m, t, dnaList1, sequence1.size(), hash_b, sig1);
+        run_mercator(k, m, t, dnaList2, sequence2.size(), hash_b, sig2);
         
         // Change the original output type to be fixed size array
         // vector <vector<uint64>> sig1 = genSig(k, m, t, dnaList1, sequence1.size(), hashes_b);
         // vector <vector<uint64>> sig2 = genSig(k, m, t, dnaList2, sequence2.size(), hashes_b);
 
-
-        cout << "sig1 size:" << sig1[0].size() << endl;
-        output_signature(sig1);
-        cout << "\nsig2 size:" << sig2[0].size() << endl;
-        output_signature(sig2);
-        cout << endl;
+        // somputeSim now need to be change to take in 2 uint64 array
         similarity = computeSim(sig1, sig2);
         time = double(clock() - ini_time) / CLOCKS_PER_SEC;
         results.emplace_back("minhash_parallel", similarity, time);

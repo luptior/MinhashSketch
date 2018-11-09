@@ -48,6 +48,7 @@ namespace utils {
             return false;
         }
     }
+
 }
 
 std::ostream &bold_on(std::ostream &os) {
